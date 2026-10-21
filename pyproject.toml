@@ -1,0 +1,72 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jhb-dataclean"
+version = "0.1.0"
+description = "Funciones de limpieza de datos con pandas: columnas, texto, tipos, nulos, duplicados y outliers."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Josue Hormiga" },
+]
+keywords = ["pandas", "data-cleaning", "dataframe"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dependencies = [
+    "pandas>=2.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/josuehormigabenitez22-cmd/data-clean"
+Issues = "https://github.com/josuehormigabenitez22-cmd/data-clean/issues"
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["win-64", "linux-64", "osx-arm64"]
+
+[tool.pixi.pypi-dependencies]
+jhb-dataclean = { path = ".", editable = true }
+
+[tool.pixi.feature.dev.dependencies]
+pytest = ">=8"
+ruff = ">=0.6"
+
+[tool.pixi.environments]
+default = ["dev"]
+
+[tool.pixi.tasks]
+test = "pytest"
+lint = "ruff check ."
+format = "ruff format ."
+
+# ---------- Configuración de herramientas ----------
+
+[tool.ruff]
+line-length = 88
+extend-exclude = ["examples"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # errores de estilo (pycodestyle)
+    "W",   # avisos de estilo
+    "F",   # errores reales: imports sin usar, nombres sin definir (pyflakes)
+    "I",   # orden de los imports (isort)
+    "B",   # bugs típicos (flake8-bugbear)
+    "UP",  # sintaxis moderna de Python (pyupgrade)
+    "PD",  # buenas prácticas de pandas
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
