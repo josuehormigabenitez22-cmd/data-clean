@@ -28,6 +28,13 @@ dependencies = [
     "pandas>=2.2",
 ]
 
+# Extras: pip install "jhb-dataclean[excel]", "[parquet]" o "[all]".
+# Mínimos: openpyxl 3.1.5 lo exige pandas 3; pyarrow 13 da avisos con pandas 2.2
+[project.optional-dependencies]
+excel = ["openpyxl>=3.1.5"]
+parquet = ["pyarrow>=14"]
+all = ["jhb-dataclean[excel,parquet]"]
+
 [project.urls]
 Homepage = "https://github.com/josuehormigabenitez22-cmd/data-clean"
 Issues = "https://github.com/josuehormigabenitez22-cmd/data-clean/issues"
@@ -42,6 +49,8 @@ jhb-dataclean = { path = ".", editable = true }
 [tool.pixi.feature.dev.dependencies]
 pytest = ">=8"
 ruff = ">=0.6"
+openpyxl = ">=3.1.5"
+pyarrow = ">=14"
 
 [tool.pixi.environments]
 default = ["dev"]
