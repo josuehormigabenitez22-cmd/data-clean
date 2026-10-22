@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "jhb-dataclean"
 version = "0.1.0"
-description = "Funciones de limpieza de datos con pandas: columnas, texto, tipos, nulos, duplicados y outliers."
+description = "Data cleaning functions for pandas: columns, text, types, missing values, duplicates and outliers."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"
@@ -38,6 +38,11 @@ all = ["jhb-dataclean[excel,parquet]"]
 [project.urls]
 Homepage = "https://github.com/josuehormigabenitez22-cmd/data-clean"
 Issues = "https://github.com/josuehormigabenitez22-cmd/data-clean/issues"
+
+# Lista blanca: el sdist solo lleva lo necesario para construir y probar el
+# paquete, así no se cuela ningún archivo local que no esté en el repositorio
+[tool.hatch.build.targets.sdist]
+include = ["/src", "/tests", "/README.md", "/LICENSE", "/pyproject.toml"]
 
 [tool.pixi.workspace]
 channels = ["conda-forge"]
