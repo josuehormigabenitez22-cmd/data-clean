@@ -60,7 +60,8 @@ def normalize_text(
             # Equivale a text.str.lower(), text.str.upper() o text.str.title()
             text = getattr(text.str, case)()
         if remove_accents:
-            text = text.map(strip_accents, na_action="ignore")
+            # .map devuelve "object" y perdería el tipo "string": se lo devolvemos
+            text = text.map(strip_accents, na_action="ignore").astype(text.dtype)
         if empty_as_na:
             text = text.mask(text == "")
         if replacements:

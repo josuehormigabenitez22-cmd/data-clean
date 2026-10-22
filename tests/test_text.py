@@ -56,11 +56,13 @@ def test_case(case: str | None, expected: str) -> None:
     assert normalize_text(df, case=case)["c"].tolist() == [expected]
 
 
-def test_remove_accents() -> None:
-    df = pd.DataFrame({"c": ["Málaga", "Cádiz", None]})
+def test_remove_accents(text_dtype: object) -> None:
+    df = pd.DataFrame({"c": pd.Series(["Málaga", "Cádiz", None], dtype=text_dtype)})
     result = normalize_text(df, remove_accents=True)
     assert result["c"].tolist()[:2] == ["malaga", "cadiz"]
     assert result["c"].isna().tolist() == [False, False, True]
+    # Quitar tildes no debe cambiar el tipo de la columna
+    assert result["c"].dtype == df["c"].dtype
 
 
 def test_keep_spaces_and_empty_strings() -> None:
