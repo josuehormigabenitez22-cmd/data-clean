@@ -28,16 +28,26 @@ Requires Python 3.11+ and pandas 2.2+ (pandas 3 is supported).
 ```pycon
 >>> import pandas as pd
 >>> import jhb_dataclean as dc
->>> raw = pd.DataFrame({
-...     " Order ID ": [1, 2, 2, 3, 4],
-...     "City": [" Madrid ", "MÁLAGA", "MÁLAGA", "Barcleona", None],
-...     "orderDate": ["2024-01-15", "16/01/2024", "16/01/2024", "2024-01-17", "2024-01-18"],
-...     "Amount": ["100.5", "250", "250", "N/A", "99000"],
-...     "Paid": ["yes", "no", "no", "SI", "1"],
-... })
+>>> raw = pd.DataFrame(
+...     {
+...         " Order ID ": [1, 2, 2, 3, 4],
+...         "City": [" Madrid ", "MÁLAGA", "MÁLAGA", "Barcleona", None],
+...         "orderDate": [
+...             "2024-01-15",
+...             "16/01/2024",
+...             "16/01/2024",
+...             "2024-01-17",
+...             "2024-01-18",
+...         ],
+...         "Amount": ["100.5", "250", "250", "N/A", "99000"],
+...         "Paid": ["yes", "no", "no", "SI", "1"],
+...     }
+... )
 >>> df = dc.standardize_columns(raw)
 >>> df = dc.normalize_text(df, remove_accents=True, replacements={"barcleona": "barcelona"})
->>> df = dc.convert_types(df, {"order_date": "datetime", "amount": "numeric", "paid": "boolean"})
+>>> df = dc.convert_types(
+...     df, {"order_date": "datetime", "amount": "numeric", "paid": "boolean"}
+... )
 >>> df = dc.remove_duplicates(df, ["order_id"])
 >>> df = dc.handle_missing(df, {"city": "unknown", "amount": "median"})
 >>> df = dc.detect_outliers(df, ["amount"])
@@ -71,7 +81,9 @@ its options.
 ### `standardize_columns`
 
 ```pycon
->>> df = pd.DataFrame(columns=[" Fecha Pedido ", "precioUnitario", "Categoría", "Precio (€)"])
+>>> df = pd.DataFrame(
+...     columns=[" Fecha Pedido ", "precioUnitario", "Categoría", "Precio (€)"]
+... )
 >>> dc.standardize_columns(df).columns.tolist()
 ['fecha_pedido', 'precio_unitario', 'categoria', 'precio']
 
@@ -86,7 +98,9 @@ lowercases, and turns empty strings into missing values.
 
 ```pycon
 >>> df = pd.DataFrame({"city": [" Málaga ", "MALAGA", "Barcleona", "   "]})
->>> clean = dc.normalize_text(df, remove_accents=True, replacements={"barcleona": "barcelona"})
+>>> clean = dc.normalize_text(
+...     df, remove_accents=True, replacements={"barcleona": "barcelona"}
+... )
 >>> clean["city"].tolist()[:3]
 ['malaga', 'malaga', 'barcelona']
 >>> clean["city"].isna().tolist()
@@ -102,13 +116,20 @@ Pass a mapping of column to target type: `"datetime"`, `"numeric"`,
 `"boolean"` or `"string"`. Values that cannot be converted become missing.
 
 ```pycon
->>> df = pd.DataFrame({
-...     "date": ["2024-01-15", "15/03/2024"],
-...     "amount": ["1500.50", "N/A"],
-...     "active": ["sí", "no"],
-...     "zip_code": [28001, 8001],
-... })
->>> types = {"date": "datetime", "amount": "numeric", "active": "boolean", "zip_code": "string"}
+>>> df = pd.DataFrame(
+...     {
+...         "date": ["2024-01-15", "15/03/2024"],
+...         "amount": ["1500.50", "N/A"],
+...         "active": ["sí", "no"],
+...         "zip_code": [28001, 8001],
+...     }
+... )
+>>> types = {
+...     "date": "datetime",
+...     "amount": "numeric",
+...     "active": "boolean",
+...     "zip_code": "string",
+... }
 >>> result = dc.convert_types(df, types, zfill={"zip_code": 5})
 >>> result["date"].dt.strftime("%Y-%m-%d").tolist()
 ['2024-01-15', '2024-03-15']
@@ -133,12 +154,16 @@ or any other value to fill with. Rows are dropped **before** the statistics
 are computed.
 
 ```pycon
->>> df = pd.DataFrame({
-...     "customer": ["Ana", "Carlos", None, "Pedro"],
-...     "purchases": [5, 12, 4, None],
-...     "city": ["Madrid", None, "Madrid", "Sevilla"],
-... })
->>> result = dc.handle_missing(df, {"customer": "drop", "purchases": "median", "city": "unknown"})
+>>> df = pd.DataFrame(
+...     {
+...         "customer": ["Ana", "Carlos", None, "Pedro"],
+...         "purchases": [5, 12, 4, None],
+...         "city": ["Madrid", None, "Madrid", "Sevilla"],
+...     }
+... )
+>>> result = dc.handle_missing(
+...     df, {"customer": "drop", "purchases": "median", "city": "unknown"}
+... )
 >>> result["purchases"].tolist()
 [5.0, 12.0, 8.5]
 >>> result["city"].tolist()
@@ -155,11 +180,13 @@ By default only exact duplicates are removed. Pass the key columns to compare
 only those, and `order_by` to choose which copy to keep:
 
 ```pycon
->>> df = pd.DataFrame({
-...     "order_id": [1, 2, 1],
-...     "amount": [100, 250, 120],
-...     "date": ["2024-01-20", "2024-01-16", "2024-01-15"],
-... })
+>>> df = pd.DataFrame(
+...     {
+...         "order_id": [1, 2, 1],
+...         "amount": [100, 250, 120],
+...         "date": ["2024-01-20", "2024-01-16", "2024-01-15"],
+...     }
+... )
 >>> dc.remove_duplicates(df, ["order_id"], keep="last", order_by="date")["amount"].tolist()
 [100, 250]
 
