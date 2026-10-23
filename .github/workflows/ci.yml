@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: ${{ matrix.environment }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Si falla una combinación, las demás siguen: así se ve dónde falla
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        # default: versiones más recientes; min: Python 3.11 + pandas 2.2
+        environment: [default, min]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: prefix-dev/setup-pixi@v0.11.2
+        with:
+          pixi-version: v0.70.2
+          environments: ${{ matrix.environment }}
+          # El lock debe estar al día con pyproject.toml
+          locked: true
+      - run: pixi run -e ${{ matrix.environment }} lint
+      - run: pixi run -e ${{ matrix.environment }} ruff format --check .
+      - run: pixi run -e ${{ matrix.environment }} test
+      - run: pixi run -e ${{ matrix.environment }} doctest
