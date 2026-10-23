@@ -1,0 +1,84 @@
+name: Publish
+
+on:
+  # Botón "Run workflow" en la pestaña Actions: publica en TestPyPI
+  workflow_dispatch:
+  # Un tag como v0.1.0: publica en PyPI
+  push:
+    tags: ["v*"]
+
+# Por defecto, solo lectura; los jobs de publicación piden lo que necesitan
+permissions:
+  contents: read
+
+jobs:
+  # Nunca se publica sin pasar toda la matriz de la CI
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: prefix-dev/setup-pixi@v0.11.2
+        with:
+          pixi-version: v0.70.2
+          # Solo queremos el comando pixi, no instalar los entornos del proyecto
+          run-install: false
+      - name: Check that the tag matches the version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          version=$(pixi exec --spec "python=3.13" -- python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "The tag $GITHUB_REF_NAME does not match version $version in pyproject.toml"
+            exit 1
+          fi
+      - name: Build sdist and wheel
+        run: pixi exec --spec python-build -- python -m build
+      - name: Check package metadata
+        run: pixi exec --spec twine -- twine check --strict dist/*
+      - name: Install the wheel in a clean environment
+        run: |
+          pixi exec --spec "python=3.11" -- python -m venv .venv-smoke
+          .venv-smoke/bin/pip install dist/*.whl
+          cd /tmp && "$GITHUB_WORKSPACE/.venv-smoke/bin/python" -c "import jhb_dataclean as dc; print(dc.__version__)"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+
+  publish-testpypi:
+    if: github.event_name == 'workflow_dispatch'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/jhb-dataclean
+    permissions:
+      # Trusted Publishing: GitHub da un token temporal que TestPyPI verifica
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@v1.14.3
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  publish-pypi:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/jhb-dataclean
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@v1.14.3
