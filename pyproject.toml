@@ -57,11 +57,20 @@ ruff = ">=0.6"
 openpyxl = ">=3.1.5"
 pyarrow = ">=14"
 
+# Las versiones mínimas que promete el paquete, para probarlas en la CI
+[tool.pixi.feature.min.dependencies]
+python = "3.11.*"
+pandas = "2.2.*"
+openpyxl = "3.1.5.*"
+pyarrow = "14.*"
+
 [tool.pixi.environments]
 default = ["dev"]
+min = ["dev", "min"]
 
 [tool.pixi.tasks]
 test = "pytest"
+doctest = "pytest --doctest-modules --doctest-glob=README.md src README.md"
 lint = "ruff check ."
 format = "ruff format ."
 
@@ -84,3 +93,6 @@ select = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Un warning (p. ej. un FutureWarning de pandas) hace fallar el test: así nos
+# enteramos antes de que la próxima versión lo convierta en error
+filterwarnings = ["error"]
